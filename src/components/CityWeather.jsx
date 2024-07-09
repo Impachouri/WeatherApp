@@ -1,13 +1,8 @@
 import { useEffect, useState } from "react";
-import { WiDaySunny, WiCloudy, WiRainMix, WiNightRainWind, WiDayRainMix } from "weather-icons-react";
+import TempChart from "./TempChart";
+import { WiCloudy, WiRainMix, WiNightRainWind, WiDayRainMix } from "weather-icons-react";
 
 const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const cloudIcons = {
-    "broken clouds": "WiCloudy",
-    "light rain": "WiRainMix",
-    "overcast clouds": "WiNightRainWind"
-}
-
 
 function clouds(description) {
     switch (description) {
@@ -25,6 +20,15 @@ function clouds(description) {
 function CityWeather({ weather }) {
 
     const [daysForecast, setDaysForecast] = useState(null);
+
+    let tempData = []
+    let timeData = []
+    for (let i = 0; i < 8; i++) {
+        tempData[i] = weather?.list[i].main.temp;
+        timeData[i] = showHours(weather?.list[i].dt)
+    }
+
+
 
 
     function showSunTimes(UnixTime) {
@@ -65,18 +69,20 @@ function CityWeather({ weather }) {
             {weather
                 &&
                 <>
+                    {/* cityDetails */}
                     <div className="flex flex-col gap-3 text-lg font-medium">
                         <span className="text-2xl">{weather.city.name}, {weather.city.country}</span>
                         <span>Sunrise : {showSunTimes(weather.city.sunrise)}</span>
                         <span>Sunset : {showSunTimes(weather.city.sunset)}</span>
                     </div>
+
+
+                    {/* chart */}
                     <div className=" flex border-2 border-black overflow-hidden">
-                        {weather.list.map((data) =>
-                            <span key={data.dt} className="flex gap-2">
-                                <span>{showHours(data.dt)}</span>
-                                <span>{data.main.temp}</span>
-                            </span>)}
+                        {timeData.length > 0 && tempData.length > 0 && <TempChart timeData={timeData} tempData={tempData} />}
                     </div>
+
+                    {/* future forecast */}
                     <div className="border-2 border-black  flex items-center justify-center gap-10 text-gray-500">
                         {daysForecast && daysForecast.map((day, index) =>
                             <div key={index} className="flex flex-col items-center justify-center">
