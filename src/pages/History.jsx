@@ -1,26 +1,47 @@
 import { Link } from 'react-router-dom';
-import { MdDelete } from "react-icons/md";
+import { MdDelete } from 'react-icons/md';
 
 function History({ history, handleDelete }) {
 
-    const handleClick = (e, index) => {
+    const handleClick = (e, city, searchTime) => {
         e.preventDefault();
-        console.log(index)
-        handleDelete(index)
-    }
+        handleDelete(city, searchTime);
+    };
 
     return (
-
-        <div className="w-screen h-screen bg-slate-100 flex  justify-center items-center flex-col gap-10">
-
-            <Link to="/" className='border-2 bg-black text-white py-2 px-4'>Back</Link>
-            <span className='text-black font-bold text-2xl'>History</span>
-            {history.map((city, index) =>
-                <li key={index} className='border-1 bg-black text-white font-semibold p-5 flex flex-row gap-10'>{city} <button onClick={(e) => handleClick(e, city)}> <MdDelete szie={20} /></button></li>
-            )
-            }
+        <div className="w-screen h-screen bg-gray-100 flex justify-center items-center flex-col gap-10">
+            <div className="w-[40%] h-full flex flex-col gap-10 p-20">
+                <Link to="/" className="border-2 bg-black text-white py-2 px-4 rounded-md self-start">
+                    Back
+                </Link>
+                <h2 className='text-2xl font-bold self-center'>History</h2>
+                <ul className="bg-white shadow-lg rounded-lg p-4 w-full ">
+                    {history.map((entry, index) => (
+                        <HistoryItem
+                            key={index}
+                            entry={entry}
+                            handleClick={(e) => handleClick(e, entry.city, entry.searchTime)}
+                        />
+                    ))}
+                </ul>
+            </div>
         </div>
-    )
+    );
 }
 
-export default History
+function HistoryItem({ entry, handleClick }) {
+    const { city, searchTime } = entry;
+
+    return (
+        <li className="w-full border-b py-2 flex items-center justify-between">
+            <span className="text-2xl font-bold">
+                {city}, <span className="text-sm">{searchTime}</span>
+            </span>
+            <button onClick={handleClick} className="text-red-500 hover:text-red-700">
+                <MdDelete size={20} />
+            </button>
+        </li>
+    );
+}
+
+export default History;

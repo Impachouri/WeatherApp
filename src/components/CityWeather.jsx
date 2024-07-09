@@ -17,84 +17,72 @@ function clouds(description) {
     }
 }
 
-function CityWeather({ weather }) {
+function showSunTimes(UnixTime) {
+    const date = new Date(UnixTime * 1000).toLocaleString('default', { timeZone: "IST" });
+    return date;
+}
 
+function showHours(UnixTime) {
+    const date = new Date(UnixTime * 1000);
+    return date.toLocaleString('en-US', { hour: 'numeric', hour12: true });
+}
+
+function kelvinToCelsius(tempKelvin) {
+    return (tempKelvin - 273.15).toFixed(1); // Convert Kelvin to Celsius and round to one decimal place
+}
+
+function CityWeather({ weather }) {
     const [daysForecast, setDaysForecast] = useState(null);
 
-    let tempData = []
-    let timeData = []
-    for (let i = 0; i < 8; i++) {
-        tempData[i] = weather?.list[i].main.temp;
-        timeData[i] = showHours(weather?.list[i].dt)
-    }
-
-
-
-
-    function showSunTimes(UnixTime) {
-        const date = new Date(UnixTime * 1000).toLocaleString('default', { timeZone: "IST" })
-        return date;
-    }
-
-    function showHours(UnixTime) {
-        const date = new Date(UnixTime * 1000)
-        return date.getHours();
-    }
-
     useEffect(() => {
-        const newfiveDays = weather?.list.filter((data, index) => {
-            if (index % 8 === 0) {
-                return data
-            }
-        })
-        let daysData = []
-        for (let i = 0; i < newfiveDays?.length; i++) {
-            daysData[i] = {
-                dayName: daysOfWeek[new Date(newfiveDays[i].dt * 1000).getDay()],
-                temp: newfiveDays[i].main.temp,
-                weatherDescription: newfiveDays[i].weather[0].description
-            }
+        if (weather) {
+            const tempData = weather.list.slice(0, 8).map(entry => kelvinToCelsius(entry.main.temp));
+            const timeData = weather.list.slice(0, 8).map(entry => showHours(entry.dt));
+            const newfiveDays = weather.list.filter((_, index) => index % 8 === 0);
+
+            const daysData = newfiveDays.map(entry => ({
+                dayName: daysOfWeek[new Date(entry.dt * 1000).getDay()],
+                temp: kelvinToCelsius(entry.main.temp),
+                weatherDescription: entry.weather[0].description
+            }));
+
+            setDaysForecast(daysData);
         }
-
-        setDaysForecast(daysData)
-    }, [weather])
-
-    useEffect(() => {
-        console.log(" daysforecast", daysForecast)
-    }, [daysForecast])
+    }, [weather]);
 
     return (
-
-        <div className="w-[70%] h-full border-2 border-gray-100 p-2 flex flex-col gap-10">
-            {weather
-                &&
+        <div className="w-[70%] h-full border-2 border-gray-100 p-2 flex flex-col gap-6">
+            {weather && (
                 <>
-                    {/* cityDetails */}
+                    {/* City Details */}
                     <div className="flex flex-col gap-3 text-lg font-medium">
                         <span className="text-2xl">{weather.city.name}, {weather.city.country}</span>
                         <span>Sunrise : {showSunTimes(weather.city.sunrise)}</span>
                         <span>Sunset : {showSunTimes(weather.city.sunset)}</span>
                     </div>
 
-
-                    {/* chart */}
-                    <div className=" flex border-2 border-black overflow-hidden">
-                        {timeData.length > 0 && tempData.length > 0 && <TempChart timeData={timeData} tempData={tempData} />}
+                    {/* Chart */}
+                    <div className="flex items-center justify-center border-2 border-black overflow-hidden">
+                        <TempChart
+                            timeData={weather.list.slice(0, 8).map(entry => showHours(entry.dt))}
+                            tempData={weather.list.slice(0, 8).map(entry => kelvinToCelsius(entry.main.temp))}
+                        />
                     </div>
 
-                    {/* future forecast */}
-                    <div className="border-2 border-black  flex items-center justify-center gap-10 text-gray-500">
-                        {daysForecast && daysForecast.map((day, index) =>
+                    {/* Future Forecast */}
+                    <div className="border-2 border-black flex items-center justify-center gap-10 text-gray-500">
+                        {daysForecast && daysForecast.map((day, index) => (
                             <div key={index} className="flex flex-col items-center justify-center">
-                                <span className="font-bold ">{day.dayName}</span>
+                                <span className="font-bold">{day.dayName}</span>
                                 {clouds(day.weatherDescription)}
-                                <span>{day.weatherDescription} | {day.temp}</span>
+                                <span>{day.weatherDescription} | {day.temp} °C</span>
                             </div>
-                        )}
+                        ))}
                     </div>
-                </>}
+                </>
+            )}
         </div>
-    )
+    );
 }
 
-export default CityWeather
+export default CityWeather;
